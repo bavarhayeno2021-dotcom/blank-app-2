@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>app_2 — جمع ستون‌ها</title>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#170c2b;color:#eee6ff;font-family:system-ui,sans-serif;}
+  .wrap{max-width:900px;margin:0 auto;padding:10px;}
+  h1{font-size:18px;margin:6px 0 8px;}
+  .note{opacity:.75;font-size:13px;margin:0 0 10px;}
+  .ctls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px;}
+  .ctl{display:flex;align-items:center;border:1px solid #5a3fa0;border-radius:10px;overflow:hidden;background:#241645;}
+  .ctl span{padding:0 8px;font-size:14px;color:#cbbcf0;}
+  .ctl button{background:#6d3fe0;color:#fff;border:0;padding:6px 12px;font-size:18px;line-height:1;}
+  .ctl button:disabled{opacity:.3;}
+  .ctl b{min-width:30px;text-align:center;font-family:monospace;font-size:15px;}
+  .total{direction:ltr;text-align:center;font-family:monospace;font-size:16px;margin:12px 0;padding:10px;border:1px solid #4b2f8a;border-radius:12px;background:#23143f;word-break:break-word;}
+  table{width:100%;border-collapse:collapse;direction:ltr;table-layout:fixed;}
+  td{border:1px solid #4b2f8a;padding:0;}
+  td.hdr{border:0;color:#b9a6e6;font-family:monospace;font-size:12px;padding:2px 0;text-align:center;}
+  input{width:100%;display:block;background:#241645;color:#eee6ff;border:0;padding:7px 0;font-size:13px;text-align:center;font-family:monospace;min-width:0;}
+  tr.sum td{background:#23143f;}
+  tr.sum span{display:block;padding:7px 0;text-align:center;font-family:monospace;font-size:12px;font-weight:bold;color:#ffd98a;overflow:hidden;white-space:nowrap;}
+
+  /* نمای دو ستونی: ستون چپ و راست، عدد وسط، عددهای بنفش بیرون */
+  .calc{direction:ltr;font-family:monospace;font-size:16px;margin-top:16px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .top{display:flex;justify-content:center;}
+  .pair{display:flex;justify-content:center;align-items:center;gap:40px;}
+  .side{display:flex;align-items:center;gap:8px;}
+  .stk{text-align:right;min-width:72px;}
+  .stk > div{padding:2px 0;}
+  .stk .ln{border-bottom:2px solid #ddd;padding-bottom:4px;margin-bottom:4px;}
+  .stk .res{color:#ffd98a;font-weight:bold;}
+  .mid{border:2px solid #00e676;border-radius:8px;padding:8px 12px;font-size:18px;font-weight:bold;color:#00e676;}
+  .badge{background:#7c4dff;color:#fff;border-radius:6px;padding:2px 7px;font-size:14px;}
+
+  [hidden]{display:none !important;}
+  body{padding-top:52px;}
+  .menu-wrap{position:fixed;top:8px;left:8px;z-index:20;}
+  #menuBtn{background:#6d3fe0;color:#fff;border:0;border-radius:10px;padding:6px 12px;font-size:18px;line-height:1;}
+  .menu{margin-top:6px;background:#241645;border:1px solid #5a3fa0;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;min-width:140px;}
+  .menu button{background:none;color:#eee6ff;border:0;padding:10px 12px;text-align:left;font-size:15px;font-family:monospace;}
+  .menu button:hover{background:#342060;}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:30;padding:12px;}
+  .win{background:#23143f;border:1px solid #5a3fa0;border-radius:14px;padding:16px;width:100%;max-width:340px;position:relative;}
+  .win h2{font-family:monospace;font-size:18px;margin:4px 0 12px;}
+  .win label{display:block;margin:8px 0;font-size:14px;}
+  .win input{display:block;width:100%;margin-top:4px;background:#241645;color:#eee6ff;border:1px solid #5a3fa0;border-radius:8px;padding:8px;font-size:15px;direction:ltr;}
+  .win button[type=submit]{width:100%;background:#6d3fe0;color:#fff;border:0;border-radius:10px;padding:10px;font-size:15px;margin-top:8px;}
+  .win .close{position:absolute;top:8px;left:8px;background:none;color:#eee6ff;border:0;font-size:20px;}
+  .msg{font-size:13px;margin:8px 0 0;color:#ffd98a;min-height:1em;}
+  .msg.err{color:#ffb4b4;}
+
+  /* متن تار هم‌رنگ پس‌زمینه، مثل حک‌شده روی تصویر: از راست وارد می‌شود، از چپ خارج می‌شود و برمی‌گردد */
+  .wrap{position:relative;z-index:1;}
+  .bg-wrap{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  .bg-text{position:absolute;top:50%;margin-top:-0.6em;left:0;white-space:nowrap;font-family:system-ui,sans-serif;font-weight:800;font-size:12vw;line-height:1;color:#130a28;text-shadow:1px 1px 1px rgba(255,255,255,.05),-1px -1px 2px rgba(0,0,0,.55);filter:blur(1.5px);animation:bgmove 18s linear infinite alternate;}
+  @keyframes bgmove{from{transform:translateX(100vw);} to{transform:translateX(-100vw);}}
+</style>
+</head>
+<body>
+<div class="bg-wrap" aria-hidden="true"><span class="bg-text">thepilottmnl001</span></div>
+
+<div class="menu-wrap">
+  <button id="menuBtn" aria-label="منو">☰</button>
+  <div class="menu" id="menu" hidden>
+    <button type="button" data-open="signup">sign up</button>
+    <button type="button" data-open="signin">sign in</button>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="win">
+    <button class="close" id="closeBtn" type="button" aria-label="بستن">×</button>
+    <form id="signupForm" hidden>
+      <h2>sign up</h2>
+      <label>نیک نیم <input name="nick" autocomplete="nickname"></label>
+      <label>ایمیل <input name="email" type="email" autocomplete="email"></label>
+      <label>پسورد <input name="pass" type="password" autocomplete="new-password"></label>
+      <label>تکرار پسورد <input name="pass2" type="password" autocomplete="new-password"></label>
+      <label>کپچا: <span id="capQ"></span> <input name="cap" inputmode="numeric"></label>
+      <button type="submit">ثبت نام</button>
+      <p class="msg" id="signupMsg"></p>
+    </form>
+    <form id="signinForm" hidden>
+      <h2>sign in</h2>
+      <label>ایمیل <input name="email" type="email" autocomplete="email"></label>
+      <label>پسورد <input name="pass" type="password" autocomplete="current-password"></label>
+      <button type="submit">ورود</button>
+      <p class="msg" id="signinMsg"></p>
+    </form>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="ctls">
+    <div class="ctl">
+      <span>ردیف</span>
+      <button id="delRow">−</button>
+      <b id="rowN">3</b>
+      <button id="addRow">+</button>
+    </div>
+    <div class="ctl">
+      <span>ستون</span>
+      <button id="delCol">−</button>
+      <b id="colN">12</b>
+      <button id="addCol">+</button>
+    </div>
+  </div>
+  <div class="total" id="total"></div>
+  <table id="grid"></table>
+  <div class="calc" id="calc"></div>
+</div>
+<script>
+let rows = 3, cols = 12;
+const MAX_ROWS = 12, MAX_COLS = 12;
+const gridEl = document.getElementById('grid');
+
+const sumOf = a => a.reduce((x,y)=>x+y,0);
+const digitSum = n => String(Math.abs(n)).split('').reduce((a,b)=>a+Number(b),0);
+// بنفش سمت چپ: شمارهٔ خانهٔ n در ردیف اول بلوکش (از صفر)
+// مضرب‌های ۱۱ از ۳۳ به بعد استثنا هستند و عدد بنفش آن‌ها ۱۱ است (۳۳=۱۱، ۴۴=۱۱، …)
+const purpleLeft = n => {
+  const r = n % 11;
+  return (r === 0 && n >= 33) ? 11 : r;
+};
+
+// تبدیل رقم فارسی/عربی به انگلیسی و خواندن عدد؛ ورودی نامعتبر = صفر
+function toNum(s){
+  const t = String(s||'')
+    .replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0)-0x06F0))
+    .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0)-0x0660))
+    .trim();
+  const n = parseFloat(t);
+  return Number.isFinite(n) ? n : 0;
+}
+
+// جمع هر ستون از ماتریس (آرایهٔ ردیف‌ها)
+function colSums(matrix){
+  const w = Math.max(0, ...matrix.map(r=>r.length));
+  const out = [];
+  for(let c=0;c<w;c++){
+    let t = 0;
+    for(const r of matrix) t += toNum(r[c]);
+    out.push(t);
+  }
+  return out;
+}
+
+// خواندن مقادیر فعلی خانه‌ها
+function readVals(){
+  return Array.from({length:rows}, (_,r) =>
+    Array.from({length:cols}, (_,c) => {
+      const el = gridEl.querySelector(`input[data-r="${r}"][data-c="${c}"]`);
+      return el ? el.value : '';
+    }));
+}
+
+// یک ستون عمودی: بخش‌ها، خط زیر آخرین بخش، سپس نتیجه
+function stk(parts, res){
+  const body = parts.map((p,i)=>`<div${i===parts.length-1?' class="ln"':''}>${p}</div>`).join('');
+  return `<div class="stk">${body}<div class="res">${res}</div></div>`;
+}
+
+// نمای دو ستونی (چپ = جمع کل و تفریق، راست = جمع ارقام)
+function calcHtml(sums){
+  const sorted = [...sums].sort((a,b)=>b-a);
+  const total = sumOf(sorted);
+  const small = Math.min(...sums);
+  const dsSmall = digitSum(small);
+  const diff = total - dsSmall;
+  const dsT = digitSum(total), dsD = digitSum(diff);
+  const sum2 = total + diff;
+  const chain = dsT + dsD;
+  const l1 = digitSum(sum2), l2 = digitSum(l1);
+  const left = `<div class="side"><div class="stk"><div>${total}</div><div>${diff}</div><div class="ln">${sum2}</div><div class="res ln">${l1}</div><div class="res">${l2}</div></div></div>`;
+  const mid = `<div class="mid">${dsSmall}</div>`;
+  const right = `<div class="side">${stk([dsT, dsD, chain], digitSum(chain))}<span class="badge">${purpleLeft(chain)}</span></div>`;
+  return `<div class="top">${mid}</div><div class="pair">${left}${right}</div>`;
+}
+
+// جمع ستون‌ها زیر هر ستون، معادلهٔ جمع مرتب، و نمای محاسبه
+function updateSums(){
+  const sums = colSums(readVals());
+  for(let c=0;c<cols;c++){
+    const el = document.getElementById('s'+c);
+    if(el) el.textContent = sums[c] != null ? sums[c] : 0;
+  }
+  const sorted = [...sums].sort((a,b)=>b-a);
+  const total = sumOf(sorted);
+  document.getElementById('total').textContent =
+    sorted.length ? sorted.join(' + ') + ' = ' + total : '';
+  document.getElementById('calc').innerHTML = calcHtml(sums);
+}
+
+// ساخت جدول: شماره ستون‌ها بالا، ردیف‌های ورودی، ردیف جمع
+function build(prev){
+  let h = '<tr>';
+  for(let c=0;c<cols;c++) h += `<td class="hdr">${c+1}</td>`;
+  h += '</tr>';
+  for(let r=0;r<rows;r++){
+    h += '<tr>';
+    for(let c=0;c<cols;c++){
+      const v = (prev && prev[r] && prev[r][c] != null) ? prev[r][c] : '';
+      h += `<td><input inputmode="decimal" value="${v}" data-r="${r}" data-c="${c}"></td>`;
+    }
+    h += '</tr>';
+  }
+  h += '<tr class="sum">';
+  for(let c=0;c<cols;c++) h += `<td><span id="s${c}">0</span></td>`;
+  h += '</tr>';
+  gridEl.innerHTML = h;
+  updateSums();
+  setButtons();
+}
+
+function resize(dr, dc){
+  const prev = readVals();
+  rows = Math.min(MAX_ROWS, Math.max(1, rows + dr));
+  cols = Math.min(MAX_COLS, Math.max(1, cols + dc));
+  build(prev);
+}
+
+function setButtons(){
+  document.getElementById('rowN').textContent = rows;
+  document.getElementById('colN').textContent = cols;
+  document.getElementById('addRow').disabled = rows >= MAX_ROWS;
+  document.getElementById('delRow').disabled = rows <= 1;
+  document.getElementById('addCol').disabled = cols >= MAX_COLS;
+  document.getElementById('delCol').disabled = cols <= 1;
+}
+
+gridEl.addEventListener('input', updateSums);
+document.getElementById('addRow').onclick = ()=>resize(1,0);
+document.getElementById('delRow').onclick = ()=>resize(-1,0);
+document.getElementById('addCol').onclick = ()=>resize(0,1);
+document.getElementById('delCol').onclick = ()=>resize(0,-1);
+
+build(null);
+
+// ---- منو و فرم‌ها (فعلاً فقط رابط کاربری؛ اتصال به سرور وصل نیست) ----
+const menuBtn = document.getElementById('menuBtn');
+const menu = document.getElementById('menu');
+const modal = document.getElementById('modal');
+const closeBtn = document.getElementById('closeBtn');
+const signupForm = document.getElementById('signupForm');
+const signinForm = document.getElementById('signinForm');
+let capAns = 0;
+
+function newCaptcha(){
+  const a = 1 + Math.floor(Math.random()*9);
+  const b = 1 + Math.floor(Math.random()*9);
+  capAns = a + b;
+  document.getElementById('capQ').textContent = `${a} + ${b} = ?`;
+}
+
+function openForm(which){
+  menu.hidden = true;
+  modal.hidden = false;
+  signupForm.hidden = which !== 'signup';
+  signinForm.hidden = which !== 'signin';
+  signupForm.reset();
+  signinForm.reset();
+  document.getElementById('signupMsg').textContent = '';
+  document.getElementById('signinMsg').textContent = '';
+  newCaptcha();
+}
+
+menuBtn.onclick = () => { menu.hidden = !menu.hidden; };
+menu.querySelectorAll('button').forEach(b => b.onclick = () => openForm(b.dataset.open));
+closeBtn.onclick = () => { modal.hidden = true; };
+modal.addEventListener('click', e => { if(e.target === modal) modal.hidden = true; });
+
+signupForm.onsubmit = e => {
+  e.preventDefault();
+  const f = e.target;
+  const msg = document.getElementById('signupMsg');
+  const nick = f.nick.value.trim();
+  const email = f.email.value.trim();
+  const p1 = f.pass.value, p2 = f.pass2.value;
+  let err = '';
+  if(!nick) err = 'نیک‌نیم را وارد کنید.';
+  else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err = 'ایمیل درست نیست.';
+  else if(p1.length < 6) err = 'پسورد باید حداقل ۶ کاراکتر باشد.';
+  else if(p1 !== p2) err = 'تکرار پسورد با پسورد یکی نیست.';
+  else if(toNum(f.cap.value) !== capAns) err = 'کپچا درست نیست.';
+  if(err){
+    msg.className = 'msg err';
+    msg.textContent = err;
+    f.cap.value = '';
+    newCaptcha();
+    return;
+  }
+  msg.className = 'msg';
+  msg.textContent = 'فرم درست است. ثبت‌نام روی سرور هنوز انجام نشده است.';
+};
+
+signinForm.onsubmit = e => {
+  e.preventDefault();
+  const msg = document.getElementById('signinMsg');
+  msg.className = 'msg';
+  msg.textContent = 'ورود هنوز به سرور وصل نیست.';
+};
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5e88bfce91bcef6',t:'MTc5NTM1NjkzMg=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5e88bfce91bcef6',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
